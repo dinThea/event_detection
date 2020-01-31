@@ -17,13 +17,16 @@ def fetch_events(user, pwd, day):
             auth = res.json()
             token = auth['token']
             request_header = {"Authorization": "Bearer {}".format(token)}
-            return requests.get(f'https://cliente.visio.ai/api/review/subway-iguatemi-saocarlos/balcao/{day}', headers=request_header)
+            results = requests.get(f'https://cliente.visio.ai/api/review/subway-iguatemi-saocarlos/balcao/{day.replace("-","")}', headers=request_header)
+            
+            return results
 
-def clear_events(events):
-
+def clear_events(events, filtered=False):
+    
     purchases = [event for event in events['eventos_aceitos'] if 'a' not in event['_id'] and 'b' not in event['_id']] 
     regular_events = [event for event in events['eventos_rejeitados'] if 'a' not in event['_id'] and 'b' not in event['_id']]
-    regular_events += [event for event in events['eventos_rejeitados_filtro'] if 'a' not in event['_id'] and 'b' not in event['_id']]
+    if filtered:
+        regular_events += [event for event in events['eventos_rejeitados_filtro'] if 'a' not in event['_id'] and 'b' not in event['_id']]
 
     return purchases, regular_events
 
@@ -31,18 +34,27 @@ def load_csv_and_create_dataframe(events, y, origin=None):
 
     big_df = pd.DataFrame(columns=['id','day','pos','purchase']) if not isinstance(origin, pd.DataFrame) else origin
     available_files = os.listdir('data')
-    i = 0
+    i = big_df.shape[0]
+    
+    print (big_df)
 
     for event in events:
 
         pattern = re.compile(r'https:\/\/storage\.googleapis\.com/(.*)\/(.*)\/(.*)')
         found = list(re.findall(pattern, event['link_bucket'][0]))[0]
+        
+        if 'X0' in event['link_bucket'][0]:
+            continue
         if f"{event['_id']}.csv" not in available_files: 
-            download(found[0], f'{found[1]}/{found[2].replace(".mp4", ".csv")}', f'data/{found[2].replace(".mp4", ".csv")}')
-
-        df_event = pd.read_csv(f'data/{found[2].replace(".mp4", ".csv")}')
-        df_event['bbox'].apply(lambda x: list(tuple (x)))
-
+            try:
+                download(found[0], f'{found[1]}/{found[2].replace(".mp4", ".csv")}', f'data/{found[2].replace(".mp4", ".csv")}')
+            except:
+                continue
+        try:
+            df_event = pd.read_csv(f'data/{found[2].replace(".mp4", ".csv")}')
+            df_event['bbox'].apply(lambda x: list(tuple (x)))
+        except:
+            continue
         big_df.loc[i] = [event['_id'], found[1], df_event['bbox'].to_list(), y]
         i+=1
     
