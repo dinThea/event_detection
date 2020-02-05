@@ -36,8 +36,6 @@ def load_csv_and_create_dataframe(events, y, origin=None):
     available_files = os.listdir('data')
     i = big_df.shape[0]
     
-    print (big_df)
-
     for event in events:
 
         pattern = re.compile(r'https:\/\/storage\.googleapis\.com/(.*)\/(.*)\/(.*)')
