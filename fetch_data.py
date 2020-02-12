@@ -21,13 +21,15 @@ def fetch_events(user, pwd, day):
             
             return results
 
-def clear_events(events, filtered=False):
+def clear_events(events, filtered=False, for_review=False):
     
     purchases = [event for event in events['eventos_aceitos'] if 'a' not in event['_id'] and 'b' not in event['_id']] 
     regular_events = [event for event in events['eventos_rejeitados'] if 'a' not in event['_id'] and 'b' not in event['_id']]
     if filtered:
         regular_events += [event for event in events['eventos_rejeitados_filtro'] if 'a' not in event['_id'] and 'b' not in event['_id']]
-
+    if for_review:
+        regular_events += [event for event in events['eventos_nao_revisados'] if 'a' not in event['_id'] and 'b' not in event['_id']] 
+    
     return purchases, regular_events
 
 def load_csv_and_create_dataframe(events, y, origin=None):

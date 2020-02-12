@@ -1,7 +1,8 @@
 numpy
-tensorflow==2.0.0b0
+tensorflow==1.14
 pandas
 matplotlib
 keras
 sklearn
+pprint
 google-cloud-storage==1.24.1
